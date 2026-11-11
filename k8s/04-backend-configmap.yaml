@@ -1,0 +1,16 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: bijouterie
+data:
+  PORT: "3000"
+  DB_HOST: "mysql"
+  DB_PORT: "3306"
+  DB_NAME: "bijouterie"
+  DB_CONNECT_RETRIES: "30"
+  DB_CONNECT_RETRY_DELAY_MS: "3000"
+  SHOP_NAME: "Maison Aurore"
+  CURRENCY: "EUR"
+  MAX_FILE_SIZE_MB: "5"
