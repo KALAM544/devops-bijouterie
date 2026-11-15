@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: bijouterie-frontend:local
+          image: kalam77/bijouterie-frontend:2
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
