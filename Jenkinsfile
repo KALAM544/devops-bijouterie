@@ -9,7 +9,7 @@ pipeline {
         skipDefaultCheckout(true)
     }
 
-    // Definition des noms des trois images Docker
+    // Noms des trois images Docker
     environment {
         FRONTEND_IMAGE = 'kalam77/bijouterie-frontend'
         BACKEND_IMAGE  = 'kalam77/bijouterie-backend'
@@ -37,7 +37,7 @@ pipeline {
             }
         }
 
-        // ETAPE 3 : Attribution du numero de build Jenkins comme tag
+        // ETAPE 3 : Attribution du numero de build Jenkins
         stage('Tag') {
             steps {
                 bat '''
@@ -48,7 +48,7 @@ pipeline {
             }
         }
 
-        // ETAPE 4 : Connexion et publication des images sur Docker Hub
+        // ETAPE 4 : Publication des images sur Docker Hub
         stage('Push') {
             steps {
                 withCredentials([
@@ -76,12 +76,41 @@ pipeline {
                 }
             }
         }
+
+        // ETAPE 5 : Mise a jour des manifestes Kubernetes
+        stage('Update Manifests') {
+            steps {
+                bat '''
+                    powershell -NoProfile -Command "$p='k8s/02-mysql-deployment.yaml'; $c=Get-Content $p -Raw; $c=[regex]::Replace($c,'(?m)^(\\s*image:\\s*).+$','$1kalam77/bijouterie-mysql:%BUILD_NUMBER%'); [IO.File]::WriteAllText((Resolve-Path $p),$c,(New-Object Text.UTF8Encoding($false)))"
+
+                    powershell -NoProfile -Command "$p='k8s/06-backend-deployment.yaml'; $c=Get-Content $p -Raw; $c=[regex]::Replace($c,'(?m)^(\\s*image:\\s*).+$','$1kalam77/bijouterie-backend:%BUILD_NUMBER%'); [IO.File]::WriteAllText((Resolve-Path $p),$c,(New-Object Text.UTF8Encoding($false)))"
+
+                    powershell -NoProfile -Command "$p='k8s/09-frontend-deployment.yaml'; $c=Get-Content $p -Raw; $c=[regex]::Replace($c,'(?m)^(\\s*image:\\s*).+$','$1kalam77/bijouterie-frontend:%BUILD_NUMBER%'); [IO.File]::WriteAllText((Resolve-Path $p),$c,(New-Object Text.UTF8Encoding($false)))"
+
+                    git diff -- k8s/
+                    git config user.name "Jenkins"
+                    git config user.email "jenkins@localhost"
+                    git add k8s/02-mysql-deployment.yaml k8s/06-backend-deployment.yaml k8s/09-frontend-deployment.yaml
+                    git commit -m "Mise a jour des images Kubernetes - build %BUILD_NUMBER%"
+                '''
+
+                // Envoi des manifestes modifies sur GitHub
+                withCredentials([
+                    gitUsernamePassword(
+                        credentialsId: 'github-credentials',
+                        gitToolName: 'Default'
+                    )
+                ]) {
+                    bat 'git push origin HEAD:main'
+                }
+            }
+        }
     }
 
-    // Affichage du resultat final du pipeline
+    // Affichage du resultat final
     post {
         success {
-            echo 'Succes : les trois images ont ete publiees sur Docker Hub.'
+            echo 'Succes : images publiees et manifestes Kubernetes mis a jour sur GitHub.'
         }
         failure {
             echo 'Echec : verifier les erreurs dans la console Jenkins.'
