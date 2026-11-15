@@ -97,7 +97,7 @@ pipeline {
                 // Envoi des manifestes modifies sur GitHub
                 withCredentials([
                     gitUsernamePassword(
-                        credentialsId: 'github-credentials',
+                        credentialsId: 'github-credential',
                         gitToolName: 'Default'
                     )
                 ]) {
