@@ -1,18 +1,16 @@
-
-@'
 pipeline {
-    // Tous les stages seront exécutés sur l'agent Windows connecté à Docker.
+    // Utilisation de notre agent Windows avec Docker
     agent {
         label 'windows && docker'
     }
 
-    // Évite le checkout automatique : nous le faisons explicitement dans le stage Checkout.
+    // Desactivation du checkout automatique
     options {
         skipDefaultCheckout(true)
     }
 
+    // Definition des noms des trois images Docker
     environment {
-        DOCKERHUB_USER = 'kalam77'
         FRONTEND_IMAGE = 'kalam77/bijouterie-frontend'
         BACKEND_IMAGE  = 'kalam77/bijouterie-backend'
         MYSQL_IMAGE    = 'kalam77/bijouterie-mysql'
@@ -20,7 +18,7 @@ pipeline {
 
     stages {
 
-        // STAGE 1 : récupération du code source depuis GitHub.
+        // ETAPE 1 : Recuperation du code depuis GitHub
         stage('Checkout') {
             steps {
                 checkout scm
@@ -28,7 +26,7 @@ pipeline {
             }
         }
 
-        // STAGE 2 : construction des trois images depuis leurs Dockerfiles.
+        // ETAPE 2 : Construction des trois images Docker
         stage('Build') {
             steps {
                 bat '''
@@ -39,7 +37,7 @@ pipeline {
             }
         }
 
-        // STAGE 3 : attribution du numéro de build Jenkins comme tag final.
+        // ETAPE 3 : Attribution du numero de build Jenkins comme tag
         stage('Tag') {
             steps {
                 bat '''
@@ -50,7 +48,7 @@ pipeline {
             }
         }
 
-        // STAGE 4 : authentification sécurisée et publication sur Docker Hub.
+        // ETAPE 4 : Connexion et publication des images sur Docker Hub
         stage('Push') {
             steps {
                 withCredentials([
@@ -80,14 +78,13 @@ pipeline {
         }
     }
 
-    // Affiche un message final selon le résultat du pipeline.
+    // Affichage du resultat final du pipeline
     post {
         success {
-            echo 'SUCCES : les trois images Bijouterie ont ete publiees sur Docker Hub.'
+            echo 'Succes : les trois images ont ete publiees sur Docker Hub.'
         }
         failure {
-            echo 'ECHEC : verifier les logs du stage en erreur.'
+            echo 'Echec : verifier les erreurs dans la console Jenkins.'
         }
     }
 }
-'@ | Set-Content -Path Jenkinsfile -Encoding UTF8
