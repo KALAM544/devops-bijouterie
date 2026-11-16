@@ -37,7 +37,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: mysql
-          image: kalam77/bijouterie-mysql:9
+          image: kalam77/bijouterie-mysql:10
           imagePullPolicy: IfNotPresent
           ports:
             - name: mysql
