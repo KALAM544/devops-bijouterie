@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: kalam77/bijouterie-backend:9
+          image: kalam77/bijouterie-backend:10
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
